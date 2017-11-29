@@ -12,7 +12,32 @@ class TasksController < ApplicationController
   end
 
   def create
-    body = JSON.parse(request.body.read)
-    task = Task.create(body)
+    task = Task.new(task_params)
+    if task.save
+      render json: task.to_json(only: [:name, :completed],
+                                  include: [ list: {only: [:name]}])
+    end
   end
+
+  def update
+    task = Task.find(params[:id])
+
+    if task.update(task_params)
+      render json: task.to_json(only: [:name, :completed],
+                                  include: [ list: {only: [:name]}])
+    end
+  end
+
+  def destroy
+    task = Task.find(params[:id])
+    task.destroy
+    render json: Task.all.to_json(only: [:name, :completed],
+                                include: [ list: {only: [:name]}])
+  end
+  private
+
+  def task_params
+    params.require(:task).permit(:name, :completed, :list_id)
+  end
+
 end
